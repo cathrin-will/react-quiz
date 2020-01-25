@@ -7,11 +7,14 @@ export default () => {
     const [questions, setQuestions] = useState(false)
     const [activeQuestion, setActiveQuestion] = useState(0)
     const [totalQuestions, setTotalQuestions] = useState(0)
+    const [totalCorrectAnswers, setTotalCorrectAnswers] = useState(0)
     const [showResults, setShowResults] = useState(false)
 
     useEffect(() => {
         axios
-            .get(`https://opentdb.com/api.php?amount=3&category=18`)
+            .get(
+                `https://opentdb.com/api.php?amount=3&category=11&difficulty=medium&type=multiple`
+            )
             .then((res) => {
                 setTotalQuestions(res.data.results.length)
                 setQuestions(res.data.results)
@@ -26,11 +29,14 @@ export default () => {
         e.preventDefault()
         setActiveQuestion(activeQuestion - 1)
     }
-    const objectFromFormData = function(formData) {
-        var values = {}
+    const addAnswers = (formData) => {
+        const values = {}
+        let totalValue = 0
         for (var pair of formData.entries()) {
             var key = pair[0]
             var value = pair[1]
+
+            totalValue += parseFloat(value)
             if (values[key]) {
                 if (!(values[key] instanceof Array)) {
                     values[key] = new Array(values[key])
@@ -40,13 +46,13 @@ export default () => {
                 values[key] = value
             }
         }
-        return values
+        setTotalCorrectAnswers(totalValue)
+        console.log(values)
     }
     const submit = (e) => {
         e.preventDefault()
         const formData = new FormData(e.target)
-        console.log(formData)
-        console.log(objectFromFormData(formData))
+        addAnswers(formData)
         setShowResults(true)
     }
 
@@ -59,14 +65,14 @@ export default () => {
                             {
                                 id: 0,
                                 answer: data.correct_answer,
-                                correct: true
+                                correct: 1
                             }
                         ]
                         data.incorrect_answers.forEach((answer, i) => {
                             allAnswers.push({
                                 id: i + 1,
                                 answer: answer,
-                                correct: false
+                                correct: 0
                             })
                         })
                         return (
@@ -95,7 +101,12 @@ export default () => {
                 </form>
             )}
 
-            {showResults && <p> You got {totalQuestions}</p>}
+            {showResults && (
+                <p>
+                    {' '}
+                    You got {totalCorrectAnswers} out of {totalQuestions}
+                </p>
+            )}
         </div>
     )
 }
